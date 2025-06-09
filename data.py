@@ -59,9 +59,9 @@ def make_YOLO_data(dir_path: str, ds: list[dict]) -> None:
         # Get image data
         img_data = item["Image_data"]
         img_pil: Image = img_data["file"]
-        filename = img_data["filename"]
+        filename = img_data["filename"][:-5]
         
-        img_pil.save(os.path.join(img_dir_path, filename + ".png"))
+        img_pil.save(os.path.join(img_dir_path, filename + ".png")) 
 
         with open(os.path.join(label_dir_path, filename + '.txt'), "w")  as f:
             f.write(f"{index} {le[0]} {le[1]} {le[2]} {le[3]}\n{index} {re[0]} {re[1]} {re[2]} {re[3]}")
