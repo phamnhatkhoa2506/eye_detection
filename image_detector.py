@@ -19,7 +19,7 @@ def detect_image(weights_path: str, img_paths: list[str], output_path: str) -> N
 
         annotated_image = image.copy()
         annotated_image = box_annotator.annotate(scene=annotated_image, detections=detections)
-        annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+        # annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
 
         output_filename = f"{output_path}/{os.path.basename(img_path)}"
         Image.fromarray(annotated_image).save(output_filename)
@@ -27,7 +27,7 @@ def detect_image(weights_path: str, img_paths: list[str], output_path: str) -> N
 
 if __name__ == "__main__":
 
-    weights_path = './best.pt'
+    weights_path = './best2.pt'
     img_paths = [
         './Eye-Closed-Open/test/images/0c145ba43b61fc25f010dac19a9664665abe9d0abbe638eea8d1cec1f050aabc.jpeg.png',
         './Eye-Closed-Open/test/images/1a57623029c3a4a97945b76fef30e0cc35f8d132eb4366b6858a57c3428c20a1.jpeg.png',
