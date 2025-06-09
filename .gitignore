@@ -1,0 +1,6 @@
+venv/
+notebooks/
+Eye-Closed-Open/
+yolov8n.pt
+images_predictions/
+video_predictions/

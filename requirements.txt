@@ -1,0 +1,10 @@
+requests
+torch
+ultralytics
+datasets
+scikit-learn
+pillow
+tqdm
+numpy
+imutils
+supervision
