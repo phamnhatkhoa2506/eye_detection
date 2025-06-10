@@ -5,11 +5,12 @@ import cv2
 import imutils
 import torch
 import supervision as sv
+import serial
 from typing import Optional
 from ultralytics import YOLO
 from datetime import datetime
 from PIL import Image
-
+from test_serial import connect_to_arduino, buzzer_on, buzzer_off
 
 # Configuration parameters
 WIDTH = 800
@@ -35,11 +36,13 @@ class EyeDetector:
     def __init__(
         self,
         weights_path: str,
+        arduino: serial.Serial
     ) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = self._load_model(weights_path)
         self.cap = self._initialize_video_capture()
         self.frame_count = 0
+        self.arduino = arduino
         print(f"[INFO] Using device: {self.device}")
 
     def _load_model(self, weights_path: str) -> YOLO:
@@ -78,9 +81,13 @@ class EyeDetector:
             if class_ == 1:  # Open eyes
                 self._draw_eye_box(frame, x1, y1, w, h, conf, open_eye_color, "Open")
                 status = open_eye_status
+
+                buzzer_off(self.arduino)
             elif class_ == 0:  # Closed eyes
                 self._draw_eye_box(frame, x1, y1, w, h, conf, closed_eye_color, "Closed")
                 status = closed_eye_status
+
+                buzzer_on(self.arduino)
 
         return status
     
@@ -152,13 +159,25 @@ class EyeDetector:
 
 
 def main():    
-    detector = EyeDetector(
-        weights_path="./best2.pt",
-    )
     try:
-        detector.process_video()
-    finally:
-        detector.cleanup()
+        arduino = connect_to_arduino()
+
+        buzzer_off(arduino)
+
+        detector = EyeDetector(
+            weights_path="./best2.pt",
+            arduino=arduino
+        )
+
+        try:
+            detector.process_video()    
+        finally:
+            detector.cleanup()
+
+    except Exception as e:
+        print(str(e))
+
+   
 
 
 if __name__ == '__main__':

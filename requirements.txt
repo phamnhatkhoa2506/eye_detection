@@ -8,3 +8,4 @@ tqdm
 numpy
 imutils
 supervision
+pyserial
