@@ -3,6 +3,5 @@ notebooks/
 Eye-Closed-Open/
 yolov8n.pt
 best.pt
-best2.pt
 images_predictions/
 video_predictions/

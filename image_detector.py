@@ -19,7 +19,7 @@ def detect_image(weights_path: str, img_paths: list[str], output_path: str) -> N
 
         annotated_image = image.copy()
         annotated_image = box_annotator.annotate(scene=annotated_image, detections=detections)
-        # annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+        # annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)  
 
         output_filename = f"{output_path}/{os.path.basename(img_path)}"
         Image.fromarray(annotated_image).save(output_filename)

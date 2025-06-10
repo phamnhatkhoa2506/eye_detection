@@ -34,10 +34,8 @@ class EyeDetector:
     def __init__(
         self,
         weights_path: str,
-        input_path: str,
     ) -> None:
         
-        self.input_path = input_path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = self._load_model(weights_path)
         self.cap = self._initialize_video_capture()
@@ -63,14 +61,9 @@ class EyeDetector:
             sys.exit(1)
 
     def _initialize_video_capture(self) -> cv2.VideoCapture:
-        if not os.path.exists(self.input_path):
-            print(f"[ERROR] Input video not found at: {self.input_path}")
-            sys.exit(1)
-
         cap = cv2.VideoCapture(0)
 
         if not cap.isOpened():
-            print(f"[ERROR] Failed to open video file: {self.input_path}")
             sys.exit(1)
 
         return cap
@@ -173,8 +166,7 @@ class EyeDetector:
         
 def main():    
     detector = EyeDetector(
-        weights_path="./runs/detect/train/weights/best.pt",
-        input_path="./inputs/demo1.mp4",
+        weights_path="./best2.pt",
     )
     detector.process_video()
 
