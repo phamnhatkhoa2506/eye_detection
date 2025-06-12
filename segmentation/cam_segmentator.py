@@ -19,7 +19,61 @@ class EyeSegmentation:
             'iris': (0, 255, 0),        # Green for iris
             'pupil': (0, 0, 255)        # Red for pupil
         }
+
+    def _detect_eyes(self, gray_img: np.ndarray, scale_factor: float = 10, min_neighbors: int = 3) -> list:
+        """
+        Detect eyes in the grayscale image using Haar cascade.
         
+        Args:
+            gray_img (np.ndarray): Grayscale input image
+            scale_factor (float): Scale factor for detection
+            min_neighbors (int): Minimum neighbors for detection
+            
+        Returns:
+            list: List of eye regions (x, y, w, h)
+        """
+        eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+        eyes = eye_cascade.detectMultiScale(gray_img, scaleFactor=scale_factor, minNeighbors=min_neighbors)
+        return eyes
+
+    def _process_eye_region(self, img: np.ndarray, eye_region: tuple) -> np.ndarray:
+        """
+        Process a single eye region using the segmentation model.
+        
+        Args:
+            img (np.ndarray): Original image
+            eye_region (tuple): Eye region coordinates (x, y, w, h)
+            
+        Returns:
+            np.ndarray: Processed eye region
+        """
+        x, y, w, h = eye_region
+        
+        # Crop and resize eye region
+        eye_crop = img[y:y+h, x:x+w]
+        eye_crop_resized = cv2.resize(eye_crop, (640, 640))
+        eye_gray = cv2.cvtColor(eye_crop_resized, cv2.COLOR_BGR2GRAY)
+        gray_img = cv2.merge([eye_gray]*3)
+        
+        # Get segmentation mask
+        result = self.model.predict(gray_img, verbose=False)[0]
+        
+        if hasattr(result, 'masks') and result.masks is not None:
+            mask_array = result.masks.data[0].cpu().numpy()
+            
+            # Resize mask to original eye region size
+            mask_resized = cv2.resize(mask_array.astype(np.uint8) * 255, (w, h))
+            
+            # Create overlay
+            overlay = eye_crop.copy()
+            overlay[mask_resized > 127] = (0, 255, 0)  # Green color
+            
+            # Blend overlay with original
+            blended = cv2.addWeighted(eye_crop, 0.7, overlay, 0.3, 0)
+            return blended
+        
+        return eye_crop
+
     def process_frame(self, frame: np.ndarray) -> tuple:
         """
         Process a single frame to segment eye components.
@@ -30,8 +84,8 @@ class EyeSegmentation:
         Returns:
             tuple: (processed_frame, segmentation_info)
         """
-        # Run YOLO segmentation
-        results = self.model(frame, verbose=False)[0]
+        # Convert frame to grayscale for eye detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # Create a copy of the frame for visualization
         processed_frame = frame.copy()
@@ -43,53 +97,17 @@ class EyeSegmentation:
             'pupil': 0
         }
         
-        # Process segmentation masks
-        if hasattr(results, 'masks') and results.masks is not None:
-            masks = results.masks.data.cpu().numpy()
-            boxes = results.boxes.data.cpu().numpy()
+        # Detect eyes
+        eyes = self._detect_eyes(gray)
+        
+        # Process each eye region
+        for eye_region in eyes:
+            processed_region = self._process_eye_region(processed_frame, eye_region)
+            x, y, w, h = eye_region
+            processed_frame[y:y+h, x:x+w] = processed_region
             
-            for i, (mask, box) in enumerate(zip(masks, boxes)):
-                x1, y1, x2, y2, confidence, class_id = box
-                class_name = self.classes[int(class_id)]
-                
-                # Update segmentation count
-                segmentation_info[class_name] += 1
-                
-                # Convert mask to uint8
-                mask = (mask * 255).astype(np.uint8)
-                
-                # Create colored mask
-                colored_mask = np.zeros_like(processed_frame)
-                colored_mask[mask > 0] = self.colors[class_name]
-                
-                # Blend mask with frame
-                alpha = 0.5
-                processed_frame = cv2.addWeighted(
-                    processed_frame, 1,
-                    colored_mask, alpha,
-                    0
-                )
-                
-                # Draw bounding box
-                cv2.rectangle(
-                    processed_frame,
-                    (int(x1), int(y1)),
-                    (int(x2), int(y2)),
-                    self.colors[class_name],
-                    2
-                )
-                
-                # Add label with confidence
-                label = f"{class_name}: {confidence:.2f}"
-                cv2.putText(
-                    processed_frame,
-                    label,
-                    (int(x1), int(y1) - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    self.colors[class_name],
-                    2
-                )
+            # Update segmentation info
+            segmentation_info['eye_area'] += 1
         
         return processed_frame, segmentation_info
     
