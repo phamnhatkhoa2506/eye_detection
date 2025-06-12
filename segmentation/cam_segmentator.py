@@ -5,7 +5,7 @@ import time
 
 
 class EyeSegmentation:
-    def __init__(self, model_path: str = 'runs/segment/eye_segmentation/weights/best.pt') -> None:
+    def __init__(self, model_path: str = './segmentation/best.pt') -> None:
         """
         Initialize the eye segmentation model.
         
