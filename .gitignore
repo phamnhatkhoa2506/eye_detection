@@ -1,7 +1,11 @@
 venv/
 notebooks/
 Eye-Closed-Open/
-yolov8n.pt
-best.pt
 images_predictions/
 video_predictions/
+__pycache__/
+**/*.pt
+segmentation/Seg_Dataset_Eye
+segmentation/**/*.jpg
+segmentation/**/*.jfif
+segmentation/**/*.png

@@ -4,12 +4,9 @@ import numpy as np
 import cv2
 import imutils
 import torch
-import supervision as sv
 import serial
-from typing import Optional
 from ultralytics import YOLO
 from datetime import datetime
-from PIL import Image
 from test_serial import connect_to_arduino, buzzer_on, buzzer_off
 
 # Configuration parameters
@@ -29,6 +26,7 @@ footer_color = (255, 255, 255)    # White for footer
 frame_name = "Eye State Detection"
 quit_key = 'q'
 
+CONF = 0.4
 
 class EyeDetector:
     """Class to handle eye state detection using YOLO model."""
@@ -78,12 +76,12 @@ class EyeDetector:
         status = start_status
         
         for (x1, y1, _, _), (_, _, w, h), (_, _, _, _, conf, class_) in zip(xyxy, xywh, cc_data):
-            if class_ == 1:  # Open eyes
+            if class_ == 1 and conf > CONF:  # Open eyes
                 self._draw_eye_box(frame, x1, y1, w, h, conf, open_eye_color, "Open")
                 status = open_eye_status
 
                 buzzer_off(self.arduino)
-            elif class_ == 0:  # Closed eyes
+            elif class_ == 0 and conf > CONF:  # Closed eyes
                 self._draw_eye_box(frame, x1, y1, w, h, conf, closed_eye_color, "Closed")
                 status = closed_eye_status
 
@@ -106,7 +104,7 @@ class EyeDetector:
         cv2.rectangle(frame, (x1, y1), (x1 + w, y1 + h), color, 2)
         
         # Draw state label
-        label = f"{state}: {np.round(conf * 100, 1)}%"
+        label = f"{state}: {np.round(conf * 100, 1):.2f}%"
         cv2.putText(frame, label, (x1, y1 - 10), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
@@ -178,7 +176,5 @@ def main():
         print(str(e))
 
    
-
-
 if __name__ == '__main__':
     main()

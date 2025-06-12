@@ -35,3 +35,14 @@ def buzzer_off(arduino: serial.Serial):
     arduino.write(b'0')
     print("Sent: 0 (Buzzer OFF)")
     print("Arduino:", arduino.readline().decode().strip())
+
+
+if __name__ == "__main__":
+    arduino = connect_to_arduino()
+
+    while True:
+        idx = input()
+        if idx == '0':
+            buzzer_off(arduino)
+        elif idx == '1':
+            buzzer_on(arduino)
