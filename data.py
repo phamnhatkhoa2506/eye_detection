@@ -16,7 +16,7 @@ WIDTH, HEIGHT = 512, 512
 
 def load_data(
     data_name: str="MichalMlodawski/closed-open-eyes", 
-    num_samples: int=2000
+    num_samples: int=5000
 ) -> List[Dict[str, Any]]:
     ds = load_dataset(data_name)
     ds_shuffled = ds["train"].shuffle(seed=42)

@@ -6,6 +6,7 @@ video_predictions/
 __pycache__/
 /best.pt 
 best2.pt
+best3.pt
 yolov8n-seg.pt
 yolov8n.pt
 segmentation/Seg_Dataset_Eye
